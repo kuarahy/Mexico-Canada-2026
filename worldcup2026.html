@@ -307,38 +307,159 @@ function fmtDateLong(d) { if(!d) return 'TBD'; return new Date(d+'T12:00:00').to
 
 // ── MATCH DATA ──────────────────────────────────────────────
 
+// Groups – official FIFA World Cup 2026 draw (source: openfootball/worldcup.json)
 const GROUPS_DEF = [
-  { id:'A', teams:['United States','Panama','Uruguay','Bolivia'] },
-  { id:'B', teams:['Mexico','Ecuador','Jamaica','Venezuela'] },
-  { id:'C', teams:['Canada','Morocco','Croatia','Belgium'] },
-  { id:'D', teams:['Spain','Brazil','Japan','Australia'] },
-  { id:'E', teams:['France','Colombia','Poland','Senegal'] },
-  { id:'F', teams:['Germany','Argentina','South Korea','Ivory Coast'] },
-  { id:'G', teams:['Portugal','Chile','Netherlands','Nigeria'] },
-  { id:'H', teams:['England','Peru','Switzerland','Tunisia'] },
-  { id:'I', teams:['Italy','Paraguay','Denmark','Algeria'] },
-  { id:'J', teams:['Serbia','New Zealand','Turkey','Egypt'] },
-  { id:'K', teams:['Austria','Honduras','Hungary','South Africa'] },
-  { id:'L', teams:['Scotland','Indonesia','Uzbekistan','Cameroon'] },
+  { id:'A', teams:['Mexico','South Africa','South Korea','Czech Republic'] },
+  { id:'B', teams:['Canada','Bosnia & Herzegovina','Qatar','Switzerland'] },
+  { id:'C', teams:['Brazil','Morocco','Haiti','Scotland'] },
+  { id:'D', teams:['USA','Paraguay','Australia','Turkey'] },
+  { id:'E', teams:['Germany','Curaçao','Ivory Coast','Ecuador'] },
+  { id:'F', teams:['Netherlands','Japan','Sweden','Tunisia'] },
+  { id:'G', teams:['Belgium','Egypt','Iran','New Zealand'] },
+  { id:'H', teams:['Spain','Cape Verde','Saudi Arabia','Uruguay'] },
+  { id:'I', teams:['France','Senegal','Iraq','Norway'] },
+  { id:'J', teams:['Argentina','Algeria','Austria','Jordan'] },
+  { id:'K', teams:['Portugal','DR Congo','Uzbekistan','Colombia'] },
+  { id:'L', teams:['England','Croatia','Ghana','Panama'] },
 ];
 
-const PAIRS = [[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]];
-const MD    = [1,1,2,2,3,3];
-
-const G_DATES = {
-  A:{ 1:['2026-06-12','14:00'], 2:['2026-06-17','17:00'], 3:['2026-06-22','20:00'] },
-  B:{ 1:['2026-06-12','17:00'], 2:['2026-06-17','20:00'], 3:['2026-06-22','20:00'] },
-  C:{ 1:['2026-06-13','14:00'], 2:['2026-06-18','14:00'], 3:['2026-06-23','20:00'] },
-  D:{ 1:['2026-06-13','17:00'], 2:['2026-06-18','17:00'], 3:['2026-06-23','20:00'] },
-  E:{ 1:['2026-06-14','14:00'], 2:['2026-06-19','14:00'], 3:['2026-06-24','20:00'] },
-  F:{ 1:['2026-06-14','17:00'], 2:['2026-06-19','17:00'], 3:['2026-06-24','20:00'] },
-  G:{ 1:['2026-06-15','14:00'], 2:['2026-06-20','14:00'], 3:['2026-06-25','20:00'] },
-  H:{ 1:['2026-06-15','17:00'], 2:['2026-06-20','17:00'], 3:['2026-06-25','20:00'] },
-  I:{ 1:['2026-06-16','14:00'], 2:['2026-06-21','14:00'], 3:['2026-06-26','20:00'] },
-  J:{ 1:['2026-06-16','17:00'], 2:['2026-06-21','17:00'], 3:['2026-06-26','20:00'] },
-  K:{ 1:['2026-06-11','17:00'], 2:['2026-06-16','20:00'], 3:['2026-06-21','20:00'] },
-  L:{ 1:['2026-06-11','20:00'], 2:['2026-06-17','14:00'], 3:['2026-06-22','17:00'] },
+// [team1, team2, date, time, venue, matchday-within-group]
+const GROUP_MATCHES_DATA = {
+  A:[
+    ['Mexico','South Africa','2026-06-11','13:00','Mexico City',1],
+    ['South Korea','Czech Republic','2026-06-11','20:00','Guadalajara',1],
+    ['Czech Republic','South Africa','2026-06-18','12:00','Atlanta',2],
+    ['Mexico','South Korea','2026-06-18','19:00','Guadalajara',2],
+    ['Czech Republic','Mexico','2026-06-24','19:00','Mexico City',3],
+    ['South Africa','South Korea','2026-06-24','19:00','Monterrey',3],
+  ],
+  B:[
+    ['Canada','Bosnia & Herzegovina','2026-06-12','15:00','Toronto',1],
+    ['Qatar','Switzerland','2026-06-13','12:00','San Francisco Bay Area',1],
+    ['Switzerland','Bosnia & Herzegovina','2026-06-18','12:00','Los Angeles',2],
+    ['Canada','Qatar','2026-06-18','15:00','Vancouver',2],
+    ['Switzerland','Canada','2026-06-24','12:00','Vancouver',3],
+    ['Bosnia & Herzegovina','Qatar','2026-06-24','12:00','Seattle',3],
+  ],
+  C:[
+    ['Brazil','Morocco','2026-06-13','18:00','New York/New Jersey',1],
+    ['Haiti','Scotland','2026-06-13','21:00','Boston',1],
+    ['Scotland','Morocco','2026-06-19','18:00','Boston',2],
+    ['Brazil','Haiti','2026-06-19','20:30','Philadelphia',2],
+    ['Scotland','Brazil','2026-06-24','18:00','Miami',3],
+    ['Morocco','Haiti','2026-06-24','18:00','Atlanta',3],
+  ],
+  D:[
+    ['USA','Paraguay','2026-06-12','18:00','Los Angeles',1],
+    ['Australia','Turkey','2026-06-13','21:00','Vancouver',1],
+    ['USA','Australia','2026-06-19','12:00','Seattle',2],
+    ['Turkey','Paraguay','2026-06-19','20:00','San Francisco Bay Area',2],
+    ['Turkey','USA','2026-06-25','19:00','Los Angeles',3],
+    ['Paraguay','Australia','2026-06-25','19:00','San Francisco Bay Area',3],
+  ],
+  E:[
+    ['Germany','Curaçao','2026-06-14','12:00','Houston',1],
+    ['Ivory Coast','Ecuador','2026-06-14','19:00','Philadelphia',1],
+    ['Germany','Ivory Coast','2026-06-20','16:00','Toronto',2],
+    ['Ecuador','Curaçao','2026-06-20','19:00','Kansas City',2],
+    ['Curaçao','Ivory Coast','2026-06-25','16:00','Philadelphia',3],
+    ['Ecuador','Germany','2026-06-25','16:00','New York/New Jersey',3],
+  ],
+  F:[
+    ['Netherlands','Japan','2026-06-14','15:00','Dallas',1],
+    ['Sweden','Tunisia','2026-06-14','20:00','Monterrey',1],
+    ['Netherlands','Sweden','2026-06-20','12:00','Houston',2],
+    ['Tunisia','Japan','2026-06-20','22:00','Monterrey',2],
+    ['Japan','Sweden','2026-06-25','18:00','Dallas',3],
+    ['Tunisia','Netherlands','2026-06-25','18:00','Kansas City',3],
+  ],
+  G:[
+    ['Belgium','Egypt','2026-06-15','12:00','Seattle',1],
+    ['Iran','New Zealand','2026-06-15','18:00','Los Angeles',1],
+    ['Belgium','Iran','2026-06-21','12:00','Los Angeles',2],
+    ['New Zealand','Egypt','2026-06-21','18:00','Vancouver',2],
+    ['Egypt','Iran','2026-06-26','20:00','Seattle',3],
+    ['New Zealand','Belgium','2026-06-26','20:00','Vancouver',3],
+  ],
+  H:[
+    ['Spain','Cape Verde','2026-06-15','12:00','Atlanta',1],
+    ['Saudi Arabia','Uruguay','2026-06-15','18:00','Miami',1],
+    ['Spain','Saudi Arabia','2026-06-21','12:00','Atlanta',2],
+    ['Uruguay','Cape Verde','2026-06-21','18:00','Miami',2],
+    ['Cape Verde','Saudi Arabia','2026-06-26','19:00','Houston',3],
+    ['Uruguay','Spain','2026-06-26','18:00','Guadalajara',3],
+  ],
+  I:[
+    ['France','Senegal','2026-06-16','15:00','New York/New Jersey',1],
+    ['Iraq','Norway','2026-06-16','18:00','Boston',1],
+    ['France','Iraq','2026-06-22','17:00','Philadelphia',2],
+    ['Norway','Senegal','2026-06-22','20:00','New York/New Jersey',2],
+    ['Norway','France','2026-06-26','15:00','Boston',3],
+    ['Senegal','Iraq','2026-06-26','15:00','Toronto',3],
+  ],
+  J:[
+    ['Argentina','Algeria','2026-06-16','20:00','Kansas City',1],
+    ['Austria','Jordan','2026-06-16','21:00','San Francisco Bay Area',1],
+    ['Argentina','Austria','2026-06-22','12:00','Dallas',2],
+    ['Jordan','Algeria','2026-06-22','20:00','San Francisco Bay Area',2],
+    ['Algeria','Austria','2026-06-27','21:00','Kansas City',3],
+    ['Jordan','Argentina','2026-06-27','21:00','Dallas',3],
+  ],
+  K:[
+    ['Portugal','DR Congo','2026-06-17','12:00','Houston',1],
+    ['Uzbekistan','Colombia','2026-06-17','20:00','Mexico City',1],
+    ['Portugal','Uzbekistan','2026-06-23','12:00','Houston',2],
+    ['Colombia','DR Congo','2026-06-23','20:00','Guadalajara',2],
+    ['Colombia','Portugal','2026-06-27','19:30','Miami',3],
+    ['DR Congo','Uzbekistan','2026-06-27','19:30','Atlanta',3],
+  ],
+  L:[
+    ['England','Croatia','2026-06-17','15:00','Dallas',1],
+    ['Ghana','Panama','2026-06-17','19:00','Toronto',1],
+    ['England','Ghana','2026-06-23','16:00','Boston',2],
+    ['Panama','Croatia','2026-06-23','19:00','Toronto',2],
+    ['Panama','England','2026-06-27','17:00','New York/New Jersey',3],
+    ['Croatia','Ghana','2026-06-27','17:00','Philadelphia',3],
+  ],
 };
+
+// Knockout fixture list: [matchNum, team1Label, team2Label, date, time, venue]
+const R32_DATA = [
+  [73,'2nd Group A','2nd Group B','2026-06-28','12:00','Los Angeles'],
+  [74,'1st Group E','Best 3rd (A/B/C/D/F)','2026-06-29','16:30','Boston'],
+  [75,'1st Group F','2nd Group C','2026-06-29','19:00','Monterrey'],
+  [76,'1st Group C','2nd Group F','2026-06-29','12:00','Houston'],
+  [77,'1st Group I','Best 3rd (C/D/F/G/H)','2026-06-30','17:00','New York/New Jersey'],
+  [78,'2nd Group E','2nd Group I','2026-06-30','12:00','Dallas'],
+  [79,'1st Group A','Best 3rd (C/E/F/H/I)','2026-06-30','19:00','Mexico City'],
+  [80,'1st Group L','Best 3rd (E/H/I/J/K)','2026-07-01','12:00','Atlanta'],
+  [81,'1st Group D','Best 3rd (B/E/F/I/J)','2026-07-01','17:00','San Francisco Bay Area'],
+  [82,'1st Group G','Best 3rd (A/E/H/I/J)','2026-07-01','13:00','Seattle'],
+  [83,'2nd Group K','2nd Group L','2026-07-02','19:00','Toronto'],
+  [84,'1st Group H','2nd Group J','2026-07-02','12:00','Los Angeles'],
+  [85,'1st Group B','Best 3rd (E/F/G/I/J)','2026-07-02','20:00','Vancouver'],
+  [86,'1st Group J','2nd Group H','2026-07-03','18:00','Miami'],
+  [87,'1st Group K','Best 3rd (D/E/I/J/L)','2026-07-03','20:30','Kansas City'],
+  [88,'2nd Group D','2nd Group G','2026-07-03','13:00','Dallas'],
+];
+
+const R16_DATA = [
+  [89,'W74','W77','2026-07-04','17:00','Philadelphia'],
+  [90,'W73','W75','2026-07-04','12:00','Houston'],
+  [91,'W76','W78','2026-07-05','16:00','New York/New Jersey'],
+  [92,'W79','W80','2026-07-05','18:00','Mexico City'],
+  [93,'W83','W84','2026-07-06','14:00','Dallas'],
+  [94,'W81','W82','2026-07-06','17:00','Seattle'],
+  [95,'W86','W88','2026-07-07','12:00','Atlanta'],
+  [96,'W85','W87','2026-07-07','13:00','Vancouver'],
+];
+
+const QF_DATA = [
+  [97,'W89','W90','2026-07-09','16:00','Boston'],
+  [98,'W93','W94','2026-07-10','12:00','Los Angeles'],
+  [99,'W91','W92','2026-07-11','17:00','Miami'],
+  [100,'W95','W96','2026-07-11','20:00','Kansas City'],
+];
 
 function makeMatch(id, type, opts) {
   return { id, type, score1:null, score2:null, pen1:null, pen2:null,
@@ -348,53 +469,39 @@ function makeMatch(id, type, opts) {
 function buildDefaultMatches() {
   const m = {};
 
-  GROUPS_DEF.forEach(g => {
-    PAIRS.forEach(([a,b], idx) => {
-      const md = MD[idx];
-      const [date, time] = G_DATES[g.id][md];
-      const id = `G${g.id}_${idx+1}`;
-      m[id] = makeMatch(id,'group',{ group:g.id, matchday:md, team1:g.teams[a], team2:g.teams[b], date, time });
+  // Group stage – 72 matches from official schedule
+  Object.entries(GROUP_MATCHES_DATA).forEach(([gid, rows]) => {
+    rows.forEach(([t1, t2, date, time, venue, matchday], idx) => {
+      const id = `G${gid}_${idx+1}`;
+      m[id] = makeMatch(id,'group',{ group:gid, matchday, team1:t1, team2:t2, date, time, venue });
     });
   });
 
-  const r32dates = ['2026-06-28','2026-06-28','2026-06-28','2026-06-28',
-                    '2026-06-29','2026-06-29','2026-06-29','2026-06-29',
-                    '2026-06-30','2026-06-30','2026-06-30','2026-06-30',
-                    '2026-07-01','2026-07-01','2026-07-02','2026-07-02'];
-  const r32times = ['12:00','15:00','18:00','21:00','12:00','15:00','18:00','21:00',
-                    '12:00','15:00','18:00','21:00','16:00','20:00','16:00','20:00'];
-  for(let i=0;i<16;i++){
-    const id=`R32_${i+1}`;
-    m[id]=makeMatch(id,'knockout',{ round:'R32', roundName:'Round of 32', matchNum:i+1,
-      team1:`R32 Slot ${i*2+1}`, team2:`R32 Slot ${i*2+2}`, date:r32dates[i], time:r32times[i] });
-  }
-
-  const r16dates=['2026-07-04','2026-07-04','2026-07-05','2026-07-05','2026-07-06','2026-07-06','2026-07-07','2026-07-07'];
-  const r16times=['16:00','20:00','16:00','20:00','16:00','20:00','16:00','20:00'];
-  for(let i=0;i<8;i++){
-    const id=`R16_${i+1}`;
-    m[id]=makeMatch(id,'knockout',{ round:'R16', roundName:'Round of 16', matchNum:i+1,
-      team1:`R16 Slot ${i*2+1}`, team2:`R16 Slot ${i*2+2}`, date:r16dates[i], time:r16times[i] });
-  }
-
-  [['2026-07-10','16:00'],['2026-07-10','20:00'],['2026-07-11','16:00'],['2026-07-11','20:00']].forEach(([d,t],i)=>{
-    const id=`QF_${i+1}`;
-    m[id]=makeMatch(id,'knockout',{ round:'QF', roundName:'Quarter-final', matchNum:i+1,
-      team1:`QF Slot ${i*2+1}`, team2:`QF Slot ${i*2+2}`, date:d, time:t });
+  // Round of 32
+  R32_DATA.forEach(([num, t1, t2, date, time, venue]) => {
+    const id = `R32_${num}`;
+    m[id] = makeMatch(id,'knockout',{ round:'R32', roundName:'Round of 32', matchNum:num, team1:t1, team2:t2, date, time, venue });
   });
 
-  [['2026-07-14','20:00'],['2026-07-15','20:00']].forEach(([d,t],i)=>{
-    const id=`SF_${i+1}`;
-    m[id]=makeMatch(id,'knockout',{ round:'SF', roundName:'Semi-final', matchNum:i+1,
-      team1:`SF Slot ${i*2+1}`, team2:`SF Slot ${i*2+2}`, date:d, time:t });
+  // Round of 16
+  R16_DATA.forEach(([num, t1, t2, date, time, venue]) => {
+    const id = `R16_${num}`;
+    m[id] = makeMatch(id,'knockout',{ round:'R16', roundName:'Round of 16', matchNum:num, team1:t1, team2:t2, date, time, venue });
   });
 
-  m['TP_1']=makeMatch('TP_1','knockout',{ round:'TP', roundName:'3rd Place', matchNum:1,
-    team1:'3rd Place Slot 1', team2:'3rd Place Slot 2', date:'2026-07-18', time:'17:00' });
+  // Quarter-finals
+  QF_DATA.forEach(([num, t1, t2, date, time, venue]) => {
+    const id = `QF_${num}`;
+    m[id] = makeMatch(id,'knockout',{ round:'QF', roundName:'Quarter-final', matchNum:num, team1:t1, team2:t2, date, time, venue });
+  });
 
-  m['F_1']=makeMatch('F_1','knockout',{ round:'F', roundName:'Final', matchNum:1,
-    team1:'Final Slot 1', team2:'Final Slot 2',
-    date:'2026-07-19', time:'17:00', venue:'MetLife Stadium, East Rutherford, NJ' });
+  // Semi-finals
+  m['SF_101'] = makeMatch('SF_101','knockout',{ round:'SF', roundName:'Semi-final', matchNum:101, team1:'W97', team2:'W98', date:'2026-07-14', time:'14:00', venue:'Dallas' });
+  m['SF_102'] = makeMatch('SF_102','knockout',{ round:'SF', roundName:'Semi-final', matchNum:102, team1:'W99', team2:'W100', date:'2026-07-15', time:'15:00', venue:'Atlanta' });
+
+  // 3rd place & Final
+  m['TP_1'] = makeMatch('TP_1','knockout',{ round:'TP', roundName:'3rd Place', matchNum:103, team1:'L101', team2:'L102', date:'2026-07-18', time:'17:00', venue:'Miami' });
+  m['F_1']  = makeMatch('F_1','knockout',{ round:'F', roundName:'Final', matchNum:104, team1:'W101', team2:'W102', date:'2026-07-19', time:'15:00', venue:'New York/New Jersey (MetLife Stadium)' });
 
   return m;
 }
@@ -587,16 +694,22 @@ function filterSched(f, btn) {
 
 function renderAll() { renderStats(); renderGroups(); if(currentTab==='knockout') renderBracket(); if(currentTab==='schedule') renderSchedule(); }
 
+const DATA_VERSION = '2026v2';
+
 function load() {
   try {
     const s = localStorage.getItem('wc2026');
-    if (s) matches = JSON.parse(s);
-    else    matches = buildDefaultMatches();
+    const v = localStorage.getItem('wc2026_ver');
+    if (s && v === DATA_VERSION) matches = JSON.parse(s);
+    else matches = buildDefaultMatches();
   } catch(_) { matches = buildDefaultMatches(); }
   if (!matches || !Object.keys(matches).length) matches = buildDefaultMatches();
 }
 
-function save() { localStorage.setItem('wc2026', JSON.stringify(matches)); }
+function save() {
+  localStorage.setItem('wc2026', JSON.stringify(matches));
+  localStorage.setItem('wc2026_ver', DATA_VERSION);
+}
 
 let editId = null;
 
