@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚽ FIFA World Cup 2026 Dashboard</title>
+  <style>
+    :root {
+      --primary: #1a472a;
+      --accent:  #f4c430;
+      --bg:      #0f1923;
+      --surface: #1e2d3d;
+      --surface2:#253545;
+      --text:    #e8edf2;
+      --muted:   #8a9bb0;
+      --win:     #2ecc71;
+      --draw:    #f39c12;
+      --loss:    #e74c3c;
+      --border:  #2e4057;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    header {
+      background: linear-gradient(135deg, #1a472a 0%, #0f1923 100%);
+      padding: 16px 24px;
+      border-bottom: 2px solid var(--accent);
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo h1 { font-size: 1.4rem; color: var(--accent); font-weight: 800; }
+    .logo small { color: var(--muted); font-size: 0.8rem; display: block; }
+    nav { display: flex; gap: 4px; background: rgba(0,0,0,.35); padding: 4px; border-radius: 8px; }
+    nav button {
+      background: transparent; border: none; color: var(--muted);
+      padding: 7px 15px; border-radius: 6px; cursor: pointer; font-size: .88rem; transition: .15s;
+    }
+    nav button.active { background: var(--accent); color: #000; font-weight: 700; }
+    nav button:hover:not(.active) { background: rgba(255,255,255,.1); color: var(--text); }
+
+    .container { max-width: 1450px; margin: 0 auto; padding: 20px 24px; }
+    .tab { display: none; }
+    .tab.active { display: block; }
+    .hint { font-size: .78rem; color: var(--muted); text-align: center; margin-bottom: 14px; }
+
+    .stat-bar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; text-align: center; }
+    .stat .val { font-size: 1.7rem; font-weight: 700; color: var(--accent); }
+    .stat .lbl { font-size: .72rem; color: var(--muted); }
+    .progress-wrap { flex: 1; min-width: 160px; }
+    .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s; }
+    .progress-label { font-size: .72rem; color: var(--muted); text-align: right; margin-top: 3px; }
+
+    .groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(520px, 1fr)); gap: 18px; }
+    .group-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .group-hd {
+      background: linear-gradient(90deg, #1a472a, #2d6a4f);
+      padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .group-hd h2 { color: var(--accent); font-size: 1rem; font-weight: 800; }
+    .group-hd span { color: rgba(255,255,255,.55); font-size: .74rem; }
+    .group-body { display: grid; grid-template-columns: 55% 45%; }
+    .matches-col { padding: 10px; border-right: 1px solid var(--border); }
+    .matches-col h3 { font-size: .7rem; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin-bottom: 6px; }
+    .match-row {
+      background: var(--surface2); border-radius: 7px; padding: 7px 9px; margin-bottom: 5px;
+      cursor: pointer; border: 1px solid transparent; transition: border-color .15s;
+    }
+    .match-row:hover { border-color: var(--accent); }
+    .match-row.completed { border-color: var(--border); }
+    .match-row.live { border-color: var(--win); animation: pulse .9s infinite alternate; }
+    @keyframes pulse { from { border-color: var(--win); } to { border-color: transparent; } }
+    .row-teams { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; }
+    .t1 { text-align: right; font-size: .8rem; font-weight: 500; }
+    .t2 { text-align: left;  font-size: .8rem; font-weight: 500; }
+    .score-mid { display: flex; align-items: center; gap: 4px; font-weight: 700; white-space: nowrap; }
+    .score-mid .s { color: var(--accent); min-width: 18px; text-align: center; font-size: .95rem; }
+    .score-mid .vs { color: var(--muted); font-size: .7rem; font-weight: 400; }
+    .row-meta { font-size: .68rem; color: var(--muted); text-align: center; margin-top: 3px; }
+    .standings-col { padding: 10px; }
+    .standings-col h3 { font-size: .7rem; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin-bottom: 6px; }
+    .std-table { width: 100%; border-collapse: collapse; font-size: .76rem; }
+    .std-table th { color: var(--muted); font-weight: 600; text-align: center; padding: 3px; }
+    .std-table th:first-child { text-align: left; }
+    .std-table td { padding: 4px 3px; text-align: center; border-top: 1px solid var(--border); }
+    .std-table td:first-child { text-align: left; }
+    .std-table tr.q1, .std-table tr.q2 { background: rgba(46,204,113,.06); }
+    .std-table tr.q3 { background: rgba(243,156,18,.06); }
+    .pos { display: inline-flex; align-items: center; justify-content: center;
+           width: 17px; height: 17px; border-radius: 50%; font-size: .68rem; font-weight: 700; margin-right: 3px; }
+    .p1,.p2 { background: var(--win); color: #000; }
+    .p3 { background: var(--draw); color: #000; }
+    .p4 { border: 1px solid var(--border); }
+    .std-legend { font-size: .67rem; color: var(--muted); margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 3px; }
+
+    .bracket-scroll { overflow-x: auto; padding-bottom: 16px; }
+    .bracket { display: flex; gap: 20px; min-width: max-content; padding: 10px 0; }
+    .rnd-col { display: flex; flex-direction: column; gap: 6px; min-width: 190px; }
+    .rnd-title {
+      text-align: center; font-size: .75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .8px; color: var(--accent); padding: 7px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 4px;
+    }
+    .b-match { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; cursor: pointer; transition: border-color .15s; }
+    .b-match:hover { border-color: var(--accent); }
+    .b-team { padding: 7px 10px; font-size: .8rem; display: flex; justify-content: space-between; align-items: center; }
+    .b-team:first-of-type { border-bottom: 1px solid var(--border); }
+    .b-team.winner { background: rgba(46,204,113,.1); font-weight: 700; }
+    .b-score { font-weight: 700; color: var(--accent); min-width: 18px; text-align: right; font-size: .9rem; }
+    .b-meta { font-size: .67rem; color: var(--muted); padding: 3px 8px; background: var(--surface2); border-top: 1px solid var(--border); text-align: center; }
+
+    .filters { display: flex; gap: 7px; margin-bottom: 18px; flex-wrap: wrap; }
+    .fbtn {
+      padding: 5px 13px; border-radius: 20px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); cursor: pointer; font-size: .8rem; transition: .15s;
+    }
+    .fbtn.active, .fbtn:hover { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+    .sched-day { margin-bottom: 22px; }
+    .sched-day h3 { font-size: .82rem; color: var(--muted); font-weight: 600; padding-bottom: 5px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+    .sched-row {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 14px; margin-bottom: 7px; cursor: pointer;
+      display: grid; grid-template-columns: 68px 1fr auto 1fr 110px; align-items: center; gap: 10px; transition: border-color .15s;
+    }
+    .sched-row:hover { border-color: var(--accent); }
+    .sched-time { font-size: .8rem; font-weight: 700; color: var(--accent); text-align: center; }
+    .sched-score { text-align: center; font-size: .9rem; font-weight: 700; white-space: nowrap; }
+    .stage-pill { font-size: .69rem; padding: 3px 8px; border-radius: 12px; background: var(--surface2); color: var(--muted); text-align: center; white-space: nowrap; }
+
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; z-index: 900; padding: 20px; }
+    .overlay.hidden { display: none; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; max-width: 430px; width: 100%; }
+    .modal h2 { font-size: 1rem; color: var(--accent); margin-bottom: 16px; }
+    .modal-teams { display: grid; grid-template-columns: 1fr 28px 1fr; align-items: center; gap: 8px; margin-bottom: 12px; text-align: center; font-size: .88rem; font-weight: 600; }
+    .modal-teams .sep { color: var(--muted); font-size: .85rem; }
+    .score-inputs { display: grid; grid-template-columns: 1fr 28px 1fr; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .score-inputs .dash { color: var(--muted); text-align: center; font-size: 1.2rem; }
+    .score-inputs input {
+      text-align: center; font-size: 1.5rem; font-weight: 700;
+      background: var(--surface2); border: 2px solid var(--border); color: var(--text);
+      border-radius: 8px; padding: 8px; width: 100%;
+    }
+    .score-inputs input:focus { outline: none; border-color: var(--accent); }
+    .pen-row { display: none; margin-bottom: 14px; }
+    .pen-row.show { display: block; }
+    .pen-row label { font-size: .78rem; color: var(--muted); display: block; margin-bottom: 6px; }
+    .pen-row .pen-grid { display: grid; grid-template-columns: 1fr 28px 1fr; align-items: center; gap: 8px; }
+    .pen-row input { text-align: center; font-size: 1.1rem; font-weight: 700; background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px; width: 100%; }
+    .pen-row input:focus { outline: none; border-color: var(--accent); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { font-size: .78rem; color: var(--muted); display: block; margin-bottom: 4px; }
+    .form-group input, .form-group select {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 7px; padding: 7px 10px; font-size: .88rem;
+    }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); }
+    .modal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+    .btn { padding: 9px 18px; border-radius: 7px; border: none; cursor: pointer; font-size: .88rem; font-weight: 600; transition: .15s; }
+    .btn-primary { background: var(--accent); color: #000; }
+    .btn-primary:hover { background: #e6b800; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+    .btn-danger { background: transparent; color: var(--loss); border: 1px solid var(--loss); }
+    .btn-danger:hover { background: rgba(231,76,60,.1); }
+    .reset-fab {
+      position: fixed; bottom: 18px; right: 18px; z-index: 200;
+      background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+      padding: 7px 13px; border-radius: 8px; cursor: pointer; font-size: .75rem; transition: .15s;
+    }
+    .reset-fab:hover { border-color: var(--loss); color: var(--loss); }
+
+    @media (max-width: 600px) {
+      .groups-grid { grid-template-columns: 1fr; }
+      .group-body { grid-template-columns: 1fr; }
+      .matches-col { border-right: none; border-bottom: 1px solid var(--border); }
+      .sched-row { grid-template-columns: 54px 1fr auto 1fr; }
+      .sched-row .stage-pill { display: none; }
+      .bracket { gap: 12px; }
+      .rnd-col { min-width: 150px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span style="font-size:2rem">⚽</span>
+    <div>
+      <h1>FIFA World Cup 2026</h1>
+      <small>Jun 11 – Jul 19 · USA · Canada · Mexico · 48 teams · 104 matches</small>
+    </div>
+  </div>
+  <nav>
+    <button class="active" onclick="showTab('groups')">Group Stage</button>
+    <button onclick="showTab('knockout')">Knockout</button>
+    <button onclick="showTab('schedule')">Schedule</button>
+  </nav>
+</header>
+
+<div class="container">
+  <div id="stat-bar" class="stat-bar"></div>
+
+  <div id="tab-groups" class="tab active">
+    <p class="hint">✏️ Click any match card to enter or update the result · All data auto-saved locally</p>
+    <div class="groups-grid" id="groups-grid"></div>
+  </div>
+
+  <div id="tab-knockout" class="tab">
+    <p class="hint">✏️ Click any match to enter result · Update team names as bracket fills in</p>
+    <div class="bracket-scroll">
+      <div class="bracket" id="bracket"></div>
+    </div>
+  </div>
+
+  <div id="tab-schedule" class="tab">
+    <div class="filters">
+      <button class="fbtn active" onclick="filterSched('all',this)">All (104)</button>
+      <button class="fbtn" onclick="filterSched('group',this)">Group Stage</button>
+      <button class="fbtn" onclick="filterSched('knockout',this)">Knockout</button>
+      <button class="fbtn" onclick="filterSched('upcoming',this)">Upcoming</button>
+      <button class="fbtn" onclick="filterSched('completed',this)">Completed</button>
+    </div>
+    <div id="sched-list"></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlay">
+  <div class="modal">
+    <h2 id="m-title">Edit Match</h2>
+    <div class="modal-teams">
+      <span id="m-t1"></span>
+      <span class="sep">vs</span>
+      <span id="m-t2"></span>
+    </div>
+    <div class="score-inputs">
+      <input type="number" id="m-s1" min="0" placeholder="0" />
+      <div class="dash">–</div>
+      <input type="number" id="m-s2" min="0" placeholder="0" />
+    </div>
+    <div class="pen-row" id="pen-row">
+      <label>Penalty Shootout (if applicable)</label>
+      <div class="pen-grid">
+        <input type="number" id="m-p1" min="0" placeholder="–" />
+        <div style="text-align:center;color:var(--muted)">–</div>
+        <input type="number" id="m-p2" min="0" placeholder="–" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="m-date" />
+      </div>
+      <div class="form-group">
+        <label>Time (local)</label>
+        <input type="time" id="m-time" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Venue / City</label>
+      <input type="text" id="m-venue" placeholder="e.g. MetLife Stadium, New Jersey" />
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="m-status">
+        <option value="scheduled">Scheduled</option>
+        <option value="live">Live 🟢</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="clearResult()">Clear Result</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveResult()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="reset-fab" onclick="resetAll()">🔄 Reset All Data</button>
+
+<script>
+let currentTab = 'groups';
+let schedFilter = 'all';
+
+function showTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  const idx = ['groups','knockout','schedule'].indexOf(tab);
+  document.querySelectorAll('nav button')[idx].classList.add('active');
+}
+
+function filterSched(f, btn) {
+  schedFilter = f;
+  document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fmtDate(d) { if(!d) return ''; return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
+function fmtDateLong(d) { if(!d) return 'TBD'; return new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}); }
+
+function openModal() {}
+function closeModal() { document.getElementById('overlay').classList.add('hidden'); }
+function saveResult() {}
+function clearResult() {}
+function resetAll() {}
+</script>
+</body>
+</html>
