@@ -6,23 +6,23 @@
   <title>⚽ FIFA World Cup 2026 Dashboard</title>
   <style>
     :root {
-      --primary: #1a472a;
-      --accent:  #f4c430;
-      --bg:      #0f1923;
-      --surface: #1e2d3d;
-      --surface2:#253545;
+      --primary: #0D1F50;
+      --accent:  #E8404A;
+      --bg:      #0c0f1a;
+      --surface: #131826;
+      --surface2:#1a2132;
       --text:    #e8edf2;
       --muted:   #8a9bb0;
-      --win:     #2ecc71;
-      --draw:    #f39c12;
-      --loss:    #e74c3c;
-      --border:  #2e4057;
+      --win:     #3D8AE8;
+      --draw:    #E07820;
+      --loss:    #E8404A;
+      --border:  #263048;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
     header {
-      background: linear-gradient(135deg, #1a472a 0%, #0f1923 100%);
+      background: linear-gradient(135deg, #5C1220 0%, #0c0f1a 100%);
       padding: 16px 24px;
       border-bottom: 2px solid var(--accent);
       display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
@@ -35,7 +35,7 @@
       background: transparent; border: none; color: var(--muted);
       padding: 7px 15px; border-radius: 6px; cursor: pointer; font-size: .88rem; transition: .15s;
     }
-    nav button.active { background: var(--accent); color: #000; font-weight: 700; }
+    nav button.active { background: var(--accent); color: #fff; font-weight: 700; }
     nav button:hover:not(.active) { background: rgba(255,255,255,.1); color: var(--text); }
 
     .container { max-width: 1450px; margin: 0 auto; padding: 20px 24px; }
@@ -55,7 +55,7 @@
     .groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(520px, 1fr)); gap: 18px; }
     .group-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
     .group-hd {
-      background: linear-gradient(90deg, #1a472a, #2d6a4f);
+      background: linear-gradient(135deg, #0D1F50, #1A3580);
       padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;
     }
     .group-hd h2 { color: var(--accent); font-size: 1rem; font-weight: 800; }
@@ -87,12 +87,12 @@
     .std-table th:first-child { text-align: left; }
     .std-table td { padding: 4px 3px; text-align: center; border-top: 1px solid var(--border); }
     .std-table td:first-child { text-align: left; }
-    .std-table tr.q1, .std-table tr.q2 { background: rgba(46,204,113,.06); }
-    .std-table tr.q3 { background: rgba(243,156,18,.06); }
+    .std-table tr.q1, .std-table tr.q2 { background: rgba(61,138,232,.08); }
+    .std-table tr.q3 { background: rgba(224,120,32,.08); }
     .pos { display: inline-flex; align-items: center; justify-content: center;
            width: 17px; height: 17px; border-radius: 50%; font-size: .68rem; font-weight: 700; margin-right: 3px; }
-    .p1,.p2 { background: var(--win); color: #000; }
-    .p3 { background: var(--draw); color: #000; }
+    .p1,.p2 { background: var(--win); color: #fff; }
+    .p3 { background: var(--draw); color: #fff; }
     .p4 { border: 1px solid var(--border); }
     .std-legend { font-size: .67rem; color: var(--muted); margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap; }
     .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 3px; }
@@ -120,7 +120,7 @@
       padding: 5px 13px; border-radius: 20px; border: 1px solid var(--border);
       background: transparent; color: var(--muted); cursor: pointer; font-size: .8rem; transition: .15s;
     }
-    .fbtn.active, .fbtn:hover { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+    .fbtn.active, .fbtn:hover { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
     .sched-day { margin-bottom: 22px; }
     .sched-day h3 { font-size: .82rem; color: var(--muted); font-weight: 600; padding-bottom: 5px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
     .sched-row {
@@ -166,7 +166,7 @@
     .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); }
     .modal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
     .btn { padding: 9px 18px; border-radius: 7px; border: none; cursor: pointer; font-size: .88rem; font-weight: 600; transition: .15s; }
-    .btn-primary { background: var(--accent); color: #000; }
+    .btn-primary { background: var(--accent); color: #fff; }
     .btn-primary:hover { background: #e6b800; }
     .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
     .btn-ghost:hover { background: var(--surface2); color: var(--text); }
