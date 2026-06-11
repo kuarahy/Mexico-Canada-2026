@@ -571,6 +571,7 @@ function groupGradient(grp) {
   const c = grp.teams.map(t => _darkMix(TEAM_COLOR[t] || '#263048'));
   return `linear-gradient(135deg, ${c[0]} 0%, ${c[1]} 33%, ${c[2]} 67%, ${c[3]} 100%)`;
 }
+function flag(name) {
   const code = FLAGS[name];
   return code ? `<img src="https://flagcdn.com/w20/${code}.png" class="fl" alt="${name}" title="${name}">` : '';
 }
