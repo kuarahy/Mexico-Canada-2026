@@ -6,23 +6,23 @@
   <title>⚽ FIFA World Cup 2026 Dashboard</title>
   <style>
     :root {
-      --primary: #0D1F50;
-      --accent:  #E8404A;
-      --bg:      #0c0f1a;
-      --surface: #131826;
-      --surface2:#1a2132;
+      --primary: #006847;
+      --accent:  #CE1126;
+      --bg:      #0b0d13;
+      --surface: #111520;
+      --surface2:#181c28;
       --text:    #e8edf2;
       --muted:   #8a9bb0;
-      --win:     #3D8AE8;
-      --draw:    #E07820;
-      --loss:    #E8404A;
-      --border:  #263048;
+      --win:     #1D9958;
+      --draw:    #C8711A;
+      --loss:    #CE1126;
+      --border:  #252d3d;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
     header {
-      background: linear-gradient(135deg, #5C1220 0%, #0c0f1a 100%);
+      background: linear-gradient(135deg, #6B0F1A 0%, #0b0d13 100%);
       padding: 16px 24px;
       border-bottom: 2px solid var(--accent);
       display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
@@ -55,7 +55,7 @@
     .groups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(520px, 1fr)); gap: 18px; }
     .group-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
     .group-hd {
-      background: linear-gradient(135deg, #0D1F50, #1A3580);
+      background: linear-gradient(135deg, #003C27, #005C3A);
       padding: 10px 14px; display: flex; justify-content: space-between; align-items: center;
     }
     .group-hd h2 { color: var(--accent); font-size: 1rem; font-weight: 800; }
@@ -87,8 +87,8 @@
     .std-table th:first-child { text-align: left; }
     .std-table td { padding: 4px 3px; text-align: center; border-top: 1px solid var(--border); }
     .std-table td:first-child { text-align: left; }
-    .std-table tr.q1, .std-table tr.q2 { background: rgba(61,138,232,.08); }
-    .std-table tr.q3 { background: rgba(224,120,32,.08); }
+    .std-table tr.q1, .std-table tr.q2 { background: rgba(29,153,88,.08); }
+    .std-table tr.q3 { background: rgba(200,113,26,.08); }
     .pos { display: inline-flex; align-items: center; justify-content: center;
            width: 17px; height: 17px; border-radius: 50%; font-size: .68rem; font-weight: 700; margin-right: 3px; }
     .p1,.p2 { background: var(--win); color: #fff; }
