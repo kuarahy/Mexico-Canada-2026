@@ -305,11 +305,295 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 function fmtDate(d) { if(!d) return ''; return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}); }
 function fmtDateLong(d) { if(!d) return 'TBD'; return new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}); }
 
+// ── MATCH DATA ──────────────────────────────────────────────
+
+const GROUPS_DEF = [
+  { id:'A', teams:['United States','Panama','Uruguay','Bolivia'] },
+  { id:'B', teams:['Mexico','Ecuador','Jamaica','Venezuela'] },
+  { id:'C', teams:['Canada','Morocco','Croatia','Belgium'] },
+  { id:'D', teams:['Spain','Brazil','Japan','Australia'] },
+  { id:'E', teams:['France','Colombia','Poland','Senegal'] },
+  { id:'F', teams:['Germany','Argentina','South Korea','Ivory Coast'] },
+  { id:'G', teams:['Portugal','Chile','Netherlands','Nigeria'] },
+  { id:'H', teams:['England','Peru','Switzerland','Tunisia'] },
+  { id:'I', teams:['Italy','Paraguay','Denmark','Algeria'] },
+  { id:'J', teams:['Serbia','New Zealand','Turkey','Egypt'] },
+  { id:'K', teams:['Austria','Honduras','Hungary','South Africa'] },
+  { id:'L', teams:['Scotland','Indonesia','Uzbekistan','Cameroon'] },
+];
+
+const PAIRS = [[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]];
+const MD    = [1,1,2,2,3,3];
+
+const G_DATES = {
+  A:{ 1:['2026-06-12','14:00'], 2:['2026-06-17','17:00'], 3:['2026-06-22','20:00'] },
+  B:{ 1:['2026-06-12','17:00'], 2:['2026-06-17','20:00'], 3:['2026-06-22','20:00'] },
+  C:{ 1:['2026-06-13','14:00'], 2:['2026-06-18','14:00'], 3:['2026-06-23','20:00'] },
+  D:{ 1:['2026-06-13','17:00'], 2:['2026-06-18','17:00'], 3:['2026-06-23','20:00'] },
+  E:{ 1:['2026-06-14','14:00'], 2:['2026-06-19','14:00'], 3:['2026-06-24','20:00'] },
+  F:{ 1:['2026-06-14','17:00'], 2:['2026-06-19','17:00'], 3:['2026-06-24','20:00'] },
+  G:{ 1:['2026-06-15','14:00'], 2:['2026-06-20','14:00'], 3:['2026-06-25','20:00'] },
+  H:{ 1:['2026-06-15','17:00'], 2:['2026-06-20','17:00'], 3:['2026-06-25','20:00'] },
+  I:{ 1:['2026-06-16','14:00'], 2:['2026-06-21','14:00'], 3:['2026-06-26','20:00'] },
+  J:{ 1:['2026-06-16','17:00'], 2:['2026-06-21','17:00'], 3:['2026-06-26','20:00'] },
+  K:{ 1:['2026-06-11','17:00'], 2:['2026-06-16','20:00'], 3:['2026-06-21','20:00'] },
+  L:{ 1:['2026-06-11','20:00'], 2:['2026-06-17','14:00'], 3:['2026-06-22','17:00'] },
+};
+
+function makeMatch(id, type, opts) {
+  return { id, type, score1:null, score2:null, pen1:null, pen2:null,
+           date:'', time:'', venue:'', status:'scheduled', ...opts };
+}
+
+function buildDefaultMatches() {
+  const m = {};
+
+  GROUPS_DEF.forEach(g => {
+    PAIRS.forEach(([a,b], idx) => {
+      const md = MD[idx];
+      const [date, time] = G_DATES[g.id][md];
+      const id = `G${g.id}_${idx+1}`;
+      m[id] = makeMatch(id,'group',{ group:g.id, matchday:md, team1:g.teams[a], team2:g.teams[b], date, time });
+    });
+  });
+
+  const r32dates = ['2026-06-28','2026-06-28','2026-06-28','2026-06-28',
+                    '2026-06-29','2026-06-29','2026-06-29','2026-06-29',
+                    '2026-06-30','2026-06-30','2026-06-30','2026-06-30',
+                    '2026-07-01','2026-07-01','2026-07-02','2026-07-02'];
+  const r32times = ['12:00','15:00','18:00','21:00','12:00','15:00','18:00','21:00',
+                    '12:00','15:00','18:00','21:00','16:00','20:00','16:00','20:00'];
+  for(let i=0;i<16;i++){
+    const id=`R32_${i+1}`;
+    m[id]=makeMatch(id,'knockout',{ round:'R32', roundName:'Round of 32', matchNum:i+1,
+      team1:`R32 Slot ${i*2+1}`, team2:`R32 Slot ${i*2+2}`, date:r32dates[i], time:r32times[i] });
+  }
+
+  const r16dates=['2026-07-04','2026-07-04','2026-07-05','2026-07-05','2026-07-06','2026-07-06','2026-07-07','2026-07-07'];
+  const r16times=['16:00','20:00','16:00','20:00','16:00','20:00','16:00','20:00'];
+  for(let i=0;i<8;i++){
+    const id=`R16_${i+1}`;
+    m[id]=makeMatch(id,'knockout',{ round:'R16', roundName:'Round of 16', matchNum:i+1,
+      team1:`R16 Slot ${i*2+1}`, team2:`R16 Slot ${i*2+2}`, date:r16dates[i], time:r16times[i] });
+  }
+
+  [['2026-07-10','16:00'],['2026-07-10','20:00'],['2026-07-11','16:00'],['2026-07-11','20:00']].forEach(([d,t],i)=>{
+    const id=`QF_${i+1}`;
+    m[id]=makeMatch(id,'knockout',{ round:'QF', roundName:'Quarter-final', matchNum:i+1,
+      team1:`QF Slot ${i*2+1}`, team2:`QF Slot ${i*2+2}`, date:d, time:t });
+  });
+
+  [['2026-07-14','20:00'],['2026-07-15','20:00']].forEach(([d,t],i)=>{
+    const id=`SF_${i+1}`;
+    m[id]=makeMatch(id,'knockout',{ round:'SF', roundName:'Semi-final', matchNum:i+1,
+      team1:`SF Slot ${i*2+1}`, team2:`SF Slot ${i*2+2}`, date:d, time:t });
+  });
+
+  m['TP_1']=makeMatch('TP_1','knockout',{ round:'TP', roundName:'3rd Place', matchNum:1,
+    team1:'3rd Place Slot 1', team2:'3rd Place Slot 2', date:'2026-07-18', time:'17:00' });
+
+  m['F_1']=makeMatch('F_1','knockout',{ round:'F', roundName:'Final', matchNum:1,
+    team1:'Final Slot 1', team2:'Final Slot 2',
+    date:'2026-07-19', time:'17:00', venue:'MetLife Stadium, East Rutherford, NJ' });
+
+  return m;
+}
+
+let matches = buildDefaultMatches();
+
+// ── STANDINGS ───────────────────────────────────────────────
+
+function standings(gid) {
+  const grp = GROUPS_DEF.find(g=>g.id===gid);
+  const rows = {};
+  grp.teams.forEach(t => rows[t]={team:t,mp:0,w:0,d:0,l:0,gf:0,ga:0,gd:0,pts:0});
+  Object.values(matches).forEach(m=>{
+    if(m.type!=='group'||m.group!==gid||m.status!=='completed'||m.score1===null||m.score2===null) return;
+    const s1=+m.score1, s2=+m.score2;
+    if(isNaN(s1)||isNaN(s2)) return;
+    const r1=rows[m.team1], r2=rows[m.team2];
+    r1.mp++; r2.mp++;
+    r1.gf+=s1; r1.ga+=s2; r2.gf+=s2; r2.ga+=s1;
+    r1.gd=r1.gf-r1.ga; r2.gd=r2.gf-r2.ga;
+    if(s1>s2){r1.w++;r1.pts+=3;r2.l++;}
+    else if(s2>s1){r2.w++;r2.pts+=3;r1.l++;}
+    else{r1.d++;r1.pts++;r2.d++;r2.pts++;}
+  });
+  return Object.values(rows).sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf||a.team.localeCompare(b.team));
+}
+
+// ── RENDER: STAT BAR ────────────────────────────────────────
+
+function renderStats() {
+  const all = Object.values(matches);
+  const done = all.filter(m=>m.status==='completed').length;
+  const goals = all.filter(m=>m.score1!==null&&m.score2!==null).reduce((s,m)=>s+(+m.score1)+(+m.score2),0);
+  const pct = ((done/all.length)*100).toFixed(0);
+  document.getElementById('stat-bar').innerHTML=`
+    <div class="stat"><div class="val">${done}</div><div class="lbl">Played</div></div>
+    <div class="stat"><div class="val">${all.length-done}</div><div class="lbl">Remaining</div></div>
+    <div class="stat"><div class="val">${goals}</div><div class="lbl">Goals</div></div>
+    <div class="stat"><div class="val">${done?((goals/done).toFixed(1)):'–'}</div><div class="lbl">Goals/Match</div></div>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="progress-label">${pct}% complete</div>
+    </div>`;
+}
+
+// ── RENDER: GROUPS ──────────────────────────────────────────
+
+function renderGroupCard(g) {
+  const ms = Object.values(matches).filter(m=>m.type==='group'&&m.group===g.id)
+                   .sort((a,b)=>a.matchday-b.matchday||(a.id>b.id?1:-1));
+  const std = standings(g.id);
+  const done = ms.filter(m=>m.status==='completed').length;
+
+  const matchRows = ms.map(m=>{
+    const has = m.score1!==null&&m.score2!==null;
+    const mid = has
+      ? `<span class="s">${m.score1}</span><span style="color:var(--muted);font-size:.75rem">–</span><span class="s">${m.score2}</span>`
+      : `<span class="vs">MD${m.matchday}</span>`;
+    const pen = (m.pen1!==null&&m.pen2!==null)? ` <span style="font-size:.65rem;color:var(--muted)">(${m.pen1}–${m.pen2}p)</span>` : '';
+    const cls = m.status==='completed'?'completed':m.status==='live'?'live':'';
+    return `<div class="match-row ${cls}" onclick="openModal('${m.id}')">
+        <div class="row-teams">
+          <span class="t1">${esc(m.team1)}</span>
+          <div class="score-mid">${mid}${pen}</div>
+          <span class="t2">${esc(m.team2)}</span>
+        </div>
+        <div class="row-meta">${fmtDate(m.date)}${m.time?' · '+m.time:''}${m.venue?' · '+esc(m.venue):''}</div>
+      </div>`;
+  }).join('');
+
+  const stdRows = std.map((r,i)=>{
+    const cls = i<2?`q${i+1}`:i===2?'q3':'';
+    return `<tr class="${cls}">
+      <td><span class="pos p${i+1}">${i+1}</span>${esc(r.team)}</td>
+      <td>${r.mp}</td><td><b>${r.pts}</b></td>
+      <td>${r.w}</td><td>${r.d}</td><td>${r.l}</td>
+      <td>${r.gd>0?'+':''}${r.gd}</td><td>${r.gf}</td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="group-card">
+    <div class="group-hd"><h2>Group ${g.id}</h2><span>${done}/6 played</span></div>
+    <div class="group-body">
+      <div class="matches-col"><h3>Matches</h3>${matchRows}</div>
+      <div class="standings-col">
+        <h3>Standings</h3>
+        <table class="std-table">
+          <thead><tr><th>Team</th><th title="Played">P</th><th title="Points">Pts</th>
+            <th>W</th><th>D</th><th>L</th><th title="Goal Difference">GD</th><th title="Goals For">GF</th></tr></thead>
+          <tbody>${stdRows}</tbody>
+        </table>
+        <div class="std-legend">
+          <span><span class="dot" style="background:var(--win)"></span>Qualify (1st/2nd)</span>
+          <span><span class="dot" style="background:var(--draw)"></span>Possible 3rd</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderGroups() {
+  document.getElementById('groups-grid').innerHTML = GROUPS_DEF.map(renderGroupCard).join('');
+}
+
+// ── RENDER: BRACKET ─────────────────────────────────────────
+
+function renderBracket() {
+  const rounds = [
+    {key:'R32',label:'Round of 32'},{key:'R16',label:'Round of 16'},
+    {key:'QF',label:'Quarter-finals'},{key:'SF',label:'Semi-finals'},
+    {key:'TP',label:'3rd Place'},{key:'F',label:'Final'},
+  ];
+  document.getElementById('bracket').innerHTML = rounds.map(rnd=>{
+    const ms = Object.values(matches).filter(m=>m.round===rnd.key).sort((a,b)=>a.matchNum-b.matchNum);
+    const cards = ms.map(m=>{
+      const has = m.score1!==null&&m.score2!==null;
+      const s1=has?m.score1:'–', s2=has?m.score2:'–';
+      let w1='',w2='';
+      if(has){
+        const n1=+m.score1,n2=+m.score2;
+        if(n1>n2) w1='winner'; else if(n2>n1) w2='winner';
+        else if(m.pen1!==null){ if(+m.pen1>+m.pen2) w1='winner'; else w2='winner'; }
+      }
+      const pen=(m.pen1!==null&&m.pen2!==null)?` (${m.pen1}–${m.pen2}p)`:'';
+      return `<div class="b-match" onclick="openModal('${m.id}')">
+        <div class="b-team ${w1}"><span>${esc(m.team1)}</span><span class="b-score">${s1}</span></div>
+        <div class="b-team ${w2}"><span>${esc(m.team2)}</span><span class="b-score">${s2}</span></div>
+        <div class="b-meta">${fmtDate(m.date)}${pen}</div>
+      </div>`;
+    }).join('');
+    return `<div class="rnd-col"><div class="rnd-title">${rnd.label}</div>${cards}</div>`;
+  }).join('');
+}
+
+// ── RENDER: SCHEDULE ────────────────────────────────────────
+
+function renderSchedule() {
+  let ms = Object.values(matches).sort((a,b)=>{
+    const da=new Date((a.date||'2099-01-01')+'T'+(a.time||'00:00'));
+    const db=new Date((b.date||'2099-01-01')+'T'+(b.time||'00:00'));
+    return da-db;
+  });
+  if(schedFilter==='group')     ms=ms.filter(m=>m.type==='group');
+  else if(schedFilter==='knockout') ms=ms.filter(m=>m.type==='knockout');
+  else if(schedFilter==='upcoming') ms=ms.filter(m=>m.status!=='completed');
+  else if(schedFilter==='completed') ms=ms.filter(m=>m.status==='completed');
+
+  const byDate={};
+  ms.forEach(m=>{ const d=m.date||'TBD'; (byDate[d]||(byDate[d]=[])).push(m); });
+
+  const html = Object.entries(byDate).map(([d,day])=>{
+    const rows = day.map(m=>{
+      const has=m.score1!==null&&m.score2!==null;
+      const sc=has?`${m.score1} – ${m.score2}`:'vs';
+      const pen=(m.pen1!==null&&m.pen2!==null)?` (${m.pen1}–${m.pen2}p)`:'';
+      const stage=m.type==='group'?`Group ${m.group} · MD${m.matchday}`:(m.roundName||'');
+      return `<div class="sched-row" onclick="openModal('${m.id}')">
+        <div class="sched-time">${m.time||'–'}</div>
+        <div style="text-align:right;font-size:.82rem;font-weight:500">${esc(m.team1)}</div>
+        <div class="sched-score">${sc}${pen}</div>
+        <div style="font-size:.82rem;font-weight:500">${esc(m.team2)}</div>
+        <div class="stage-pill">${stage}</div>
+      </div>`;
+    }).join('');
+    return `<div class="sched-day"><h3>${fmtDateLong(d==='TBD'?null:d)}</h3>${rows}</div>`;
+  }).join('');
+
+  document.getElementById('sched-list').innerHTML = html||'<p style="color:var(--muted);text-align:center;padding:40px">No matches</p>';
+}
+
+// ── NAV WIRING ───────────────────────────────────────────────
+
+function showTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  const idx=['groups','knockout','schedule'].indexOf(tab);
+  document.querySelectorAll('nav button')[idx].classList.add('active');
+  if(tab==='knockout') renderBracket();
+  if(tab==='schedule') renderSchedule();
+}
+
+function filterSched(f, btn) {
+  schedFilter=f;
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSchedule();
+}
+
+function renderAll() { renderStats(); renderGroups(); if(currentTab==='knockout') renderBracket(); if(currentTab==='schedule') renderSchedule(); }
+
 function openModal() {}
 function closeModal() { document.getElementById('overlay').classList.add('hidden'); }
 function saveResult() {}
 function clearResult() {}
 function resetAll() {}
+
+renderAll();
 </script>
 </body>
 </html>
