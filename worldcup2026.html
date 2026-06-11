@@ -71,13 +71,16 @@
     .match-row.completed { border-color: var(--border); }
     .match-row.live { border-color: var(--win); animation: pulse .9s infinite alternate; }
     @keyframes pulse { from { border-color: var(--win); } to { border-color: transparent; } }
-    .row-teams { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; }
-    .t1 { text-align: right; font-size: .8rem; font-weight: 500; }
-    .t2 { text-align: left;  font-size: .8rem; font-weight: 500; }
+    .row-teams { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px; }
+    .t1 { text-align: right; font-size: .82rem; font-weight: 600; display: flex; align-items: center; justify-content: flex-end; gap: 4px; overflow: hidden; }
+    .t2 { text-align: left;  font-size: .82rem; font-weight: 600; display: flex; align-items: center; gap: 4px; overflow: hidden; }
+    .t1 .tn, .t2 .tn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .fl { font-size: 1.1rem; line-height: 1; flex-shrink: 0; }
     .score-mid { display: flex; align-items: center; gap: 4px; font-weight: 700; white-space: nowrap; }
     .score-mid .s { color: var(--accent); min-width: 18px; text-align: center; font-size: .95rem; }
     .score-mid .vs { color: var(--muted); font-size: .7rem; font-weight: 400; }
-    .row-meta { font-size: .68rem; color: var(--muted); text-align: center; margin-top: 3px; }
+    .row-meta { font-size: .65rem; color: var(--muted); text-align: center; margin-top: 4px; line-height: 1.6; }
+    .tz-line { display: block; color: rgba(138,155,176,.75); font-size: .63rem; }
     .standings-col { padding: 10px; }
     .standings-col h3 { font-size: .7rem; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin-bottom: 6px; }
     .std-table { width: 100%; border-collapse: collapse; font-size: .76rem; }
@@ -105,11 +108,13 @@
     }
     .b-match { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; cursor: pointer; transition: border-color .15s; }
     .b-match:hover { border-color: var(--accent); }
-    .b-team { padding: 7px 10px; font-size: .8rem; display: flex; justify-content: space-between; align-items: center; }
+    .b-team { padding: 7px 10px; font-size: .8rem; display: flex; justify-content: space-between; align-items: center; gap: 4px; }
     .b-team:first-of-type { border-bottom: 1px solid var(--border); }
     .b-team.winner { background: rgba(46,204,113,.1); font-weight: 700; }
-    .b-score { font-weight: 700; color: var(--accent); min-width: 18px; text-align: right; font-size: .9rem; }
-    .b-meta { font-size: .67rem; color: var(--muted); padding: 3px 8px; background: var(--surface2); border-top: 1px solid var(--border); text-align: center; }
+    .b-name { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; }
+    .b-name .tn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .b-score { font-weight: 700; color: var(--accent); min-width: 18px; text-align: right; font-size: .9rem; flex-shrink: 0; }
+    .b-meta { font-size: .67rem; color: var(--muted); padding: 4px 8px; background: var(--surface2); border-top: 1px solid var(--border); text-align: center; line-height: 1.7; }
 
     .filters { display: flex; gap: 7px; margin-bottom: 18px; flex-wrap: wrap; }
     .fbtn {
@@ -122,11 +127,14 @@
     .sched-row {
       background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
       padding: 10px 14px; margin-bottom: 7px; cursor: pointer;
-      display: grid; grid-template-columns: 68px 1fr auto 1fr 110px; align-items: center; gap: 10px; transition: border-color .15s;
+      display: grid; grid-template-columns: 90px 1fr auto 1fr 110px; align-items: center; gap: 10px; transition: border-color .15s;
     }
     .sched-row:hover { border-color: var(--accent); }
-    .sched-time { font-size: .8rem; font-weight: 700; color: var(--accent); text-align: center; }
+    .sched-time { font-size: .75rem; font-weight: 700; color: var(--accent); text-align: center; line-height: 1.75; }
+    .sched-time .tz { display: block; font-size: .67rem; font-weight: 400; color: var(--muted); }
     .sched-score { text-align: center; font-size: .9rem; font-weight: 700; white-space: nowrap; }
+    .sched-t { font-size: .82rem; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+    .sched-t.right { justify-content: flex-end; }
     .stage-pill { font-size: .69rem; padding: 3px 8px; border-radius: 12px; background: var(--surface2); color: var(--muted); text-align: center; white-space: nowrap; }
 
     .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: flex; align-items: center; justify-content: center; z-index: 900; padding: 20px; }
@@ -508,6 +516,58 @@ function buildDefaultMatches() {
 
 let matches = buildDefaultMatches();
 
+// ── FLAGS & TIME ZONES ───────────────────────────────────────
+
+const FLAGS = {
+  'Mexico':'🇲🇽','Canada':'🇨🇦','USA':'🇺🇸',
+  'Brazil':'🇧🇷','Argentina':'🇦🇷','Colombia':'🇨🇴','Uruguay':'🇺🇾',
+  'Ecuador':'🇪🇨','Paraguay':'🇵🇾','Haiti':'🇭🇹','Panama':'🇵🇦',
+  'France':'🇫🇷','Spain':'🇪🇸','Germany':'🇩🇪','Portugal':'🇵🇹',
+  'Netherlands':'🇳🇱','Belgium':'🇧🇪','Sweden':'🇸🇪','Norway':'🇳🇴',
+  'Austria':'🇦🇹','Croatia':'🇭🇷','Switzerland':'🇨🇭',
+  'England':'🏴󠁧󠁢󠁥󠁮󠁧󠁿','Scotland':'🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+  'Czech Republic':'🇨🇿',
+  'South Korea':'🇰🇷','Japan':'🇯🇵','Australia':'🇦🇺','New Zealand':'🇳🇿',
+  'Iran':'🇮🇷','Iraq':'🇮🇶','Saudi Arabia':'🇸🇦','Uzbekistan':'🇺🇿',
+  'Qatar':'🇶🇦','Jordan':'🇯🇴',
+  'Morocco':'🇲🇦','Senegal':'🇸🇳','Egypt':'🇪🇬','Tunisia':'🇹🇳',
+  'Ghana':'🇬🇭','Ivory Coast':'🇨🇮','South Africa':'🇿🇦',
+  'DR Congo':'🇨🇩','Algeria':'🇩🇿','Cape Verde':'🇨🇻',
+  'Turkey':'🇹🇷',
+  'Curaçao':'🇨🇼',
+  'Bosnia & Herzegovina':'🇧🇦',
+};
+
+// UTC offsets for each venue city during June/July 2026
+const VENUE_UTC = {
+  'Mexico City':-6,'Guadalajara':-6,'Monterrey':-6,
+  'Atlanta':-4,'Boston':-4,'Miami':-4,'Philadelphia':-4,'Toronto':-4,
+  'New York/New Jersey':-4,
+  'Dallas':-5,'Houston':-5,'Kansas City':-5,
+  'Los Angeles':-7,'San Francisco Bay Area':-7,'Seattle':-7,'Vancouver':-7,
+};
+
+function flag(name) { return FLAGS[name] || ''; }
+
+function _addMin(hhmm, mins) {
+  const [h, m] = hhmm.split(':').map(Number);
+  const t = ((h * 60 + m + mins) % 1440 + 1440) % 1440;
+  return String(Math.floor(t/60)).padStart(2,'0') + ':' + String(t%60).padStart(2,'0');
+}
+function _venueOffset(venue) {
+  if (!venue) return null;
+  for (const [k, v] of Object.entries(VENUE_UTC)) { if (venue.includes(k)) return v; }
+  return null;
+}
+function toGMT(time, venue) {
+  if (!time) return '–'; const off = _venueOffset(venue);
+  return off == null ? '–' : _addMin(time, -off * 60);
+}
+function toCDT(time, venue) {
+  const gmt = toGMT(time, venue);
+  return gmt === '–' ? '–' : _addMin(gmt, -5 * 60);
+}
+
 // ── STANDINGS ───────────────────────────────────────────────
 
 function standings(gid) {
@@ -562,20 +622,22 @@ function renderGroupCard(g) {
       : `<span class="vs">MD${m.matchday}</span>`;
     const pen = (m.pen1!==null&&m.pen2!==null)? ` <span style="font-size:.65rem;color:var(--muted)">(${m.pen1}–${m.pen2}p)</span>` : '';
     const cls = m.status==='completed'?'completed':m.status==='live'?'live':'';
+    const gmt = toGMT(m.time, m.venue), cdt = toCDT(m.time, m.venue);
+    const tzLine = (gmt!=='–') ? `<span class="tz-line">${gmt} GMT · ${cdt} CDT</span>` : '';
     return `<div class="match-row ${cls}" onclick="openModal('${m.id}')">
         <div class="row-teams">
-          <span class="t1">${esc(m.team1)}</span>
+          <div class="t1"><span class="tn">${esc(m.team1)}</span><span class="fl">${flag(m.team1)}</span></div>
           <div class="score-mid">${mid}${pen}</div>
-          <span class="t2">${esc(m.team2)}</span>
+          <div class="t2"><span class="fl">${flag(m.team2)}</span><span class="tn">${esc(m.team2)}</span></div>
         </div>
-        <div class="row-meta">${fmtDate(m.date)}${m.time?' · '+m.time:''}${m.venue?' · '+esc(m.venue):''}</div>
+        <div class="row-meta">${fmtDate(m.date)}${m.venue?' · '+esc(m.venue):''}${tzLine}</div>
       </div>`;
   }).join('');
 
   const stdRows = std.map((r,i)=>{
     const cls = i<2?`q${i+1}`:i===2?'q3':'';
     return `<tr class="${cls}">
-      <td><span class="pos p${i+1}">${i+1}</span>${esc(r.team)}</td>
+      <td><span class="pos p${i+1}">${i+1}</span><span class="fl" style="font-size:.9rem">${flag(r.team)}</span> ${esc(r.team)}</td>
       <td>${r.mp}</td><td><b>${r.pts}</b></td>
       <td>${r.w}</td><td>${r.d}</td><td>${r.l}</td>
       <td>${r.gd>0?'+':''}${r.gd}</td><td>${r.gf}</td>
@@ -626,10 +688,12 @@ function renderBracket() {
         else if(m.pen1!==null){ if(+m.pen1>+m.pen2) w1='winner'; else w2='winner'; }
       }
       const pen=(m.pen1!==null&&m.pen2!==null)?` (${m.pen1}–${m.pen2}p)`:'';
+      const gmt=toGMT(m.time,m.venue), cdt=toCDT(m.time,m.venue);
+      const tzLine=(gmt!=='–')?`<span class="tz" style="display:block">${gmt} GMT · ${cdt} CDT</span>`:'';
       return `<div class="b-match" onclick="openModal('${m.id}')">
-        <div class="b-team ${w1}"><span>${esc(m.team1)}</span><span class="b-score">${s1}</span></div>
-        <div class="b-team ${w2}"><span>${esc(m.team2)}</span><span class="b-score">${s2}</span></div>
-        <div class="b-meta">${fmtDate(m.date)}${pen}</div>
+        <div class="b-team ${w1}"><div class="b-name"><span class="fl">${flag(m.team1)}</span><span class="tn">${esc(m.team1)}</span></div><span class="b-score">${s1}</span></div>
+        <div class="b-team ${w2}"><div class="b-name"><span class="fl">${flag(m.team2)}</span><span class="tn">${esc(m.team2)}</span></div><span class="b-score">${s2}</span></div>
+        <div class="b-meta">${fmtDate(m.date)}${pen}${tzLine}</div>
       </div>`;
     }).join('');
     return `<div class="rnd-col"><div class="rnd-title">${rnd.label}</div>${cards}</div>`;
@@ -658,11 +722,12 @@ function renderSchedule() {
       const sc=has?`${m.score1} – ${m.score2}`:'vs';
       const pen=(m.pen1!==null&&m.pen2!==null)?` (${m.pen1}–${m.pen2}p)`:'';
       const stage=m.type==='group'?`Group ${m.group} · MD${m.matchday}`:(m.roundName||'');
+      const gmt=toGMT(m.time,m.venue), cdt=toCDT(m.time,m.venue);
       return `<div class="sched-row" onclick="openModal('${m.id}')">
-        <div class="sched-time">${m.time||'–'}</div>
-        <div style="text-align:right;font-size:.82rem;font-weight:500">${esc(m.team1)}</div>
+        <div class="sched-time">${gmt} GMT<span class="tz">${cdt} CDT</span></div>
+        <div class="sched-t right"><span class="tn">${esc(m.team1)}</span><span class="fl">${flag(m.team1)}</span></div>
         <div class="sched-score">${sc}${pen}</div>
-        <div style="font-size:.82rem;font-weight:500">${esc(m.team2)}</div>
+        <div class="sched-t"><span class="fl">${flag(m.team2)}</span><span class="tn">${esc(m.team2)}</span></div>
         <div class="stage-pill">${stage}</div>
       </div>`;
     }).join('');
