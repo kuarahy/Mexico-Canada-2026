@@ -587,12 +587,90 @@ function filterSched(f, btn) {
 
 function renderAll() { renderStats(); renderGroups(); if(currentTab==='knockout') renderBracket(); if(currentTab==='schedule') renderSchedule(); }
 
-function openModal() {}
-function closeModal() { document.getElementById('overlay').classList.add('hidden'); }
-function saveResult() {}
-function clearResult() {}
-function resetAll() {}
+function load() {
+  try {
+    const s = localStorage.getItem('wc2026');
+    if (s) matches = JSON.parse(s);
+    else    matches = buildDefaultMatches();
+  } catch(_) { matches = buildDefaultMatches(); }
+  if (!matches || !Object.keys(matches).length) matches = buildDefaultMatches();
+}
 
+function save() { localStorage.setItem('wc2026', JSON.stringify(matches)); }
+
+let editId = null;
+
+function openModal(id) {
+  const m = matches[id];
+  if(!m) return;
+  editId = id;
+  document.getElementById('m-title').textContent =
+    m.type==='group' ? `Group ${m.group} · Matchday ${m.matchday}` : (m.roundName||m.round);
+  document.getElementById('m-t1').textContent = m.team1;
+  document.getElementById('m-t2').textContent = m.team2;
+  document.getElementById('m-s1').value = m.score1!==null ? m.score1 : '';
+  document.getElementById('m-s2').value = m.score2!==null ? m.score2 : '';
+  document.getElementById('m-p1').value = m.pen1!==null ? m.pen1 : '';
+  document.getElementById('m-p2').value = m.pen2!==null ? m.pen2 : '';
+  document.getElementById('m-date').value  = m.date||'';
+  document.getElementById('m-time').value  = m.time||'';
+  document.getElementById('m-venue').value = m.venue||'';
+  document.getElementById('m-status').value = m.status||'scheduled';
+  document.getElementById('pen-row').classList.toggle('show', m.type==='knockout');
+  document.getElementById('overlay').classList.remove('hidden');
+  document.getElementById('m-s1').focus();
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.add('hidden');
+  editId = null;
+}
+
+function saveResult() {
+  if(!editId) return;
+  const m = matches[editId];
+  const s1v = document.getElementById('m-s1').value;
+  const s2v = document.getElementById('m-s2').value;
+  m.score1 = s1v!==''?+s1v:null;
+  m.score2 = s2v!==''?+s2v:null;
+  const p1v = document.getElementById('m-p1').value;
+  const p2v = document.getElementById('m-p2').value;
+  m.pen1 = p1v!==''?+p1v:null;
+  m.pen2 = p2v!==''?+p2v:null;
+  m.date   = document.getElementById('m-date').value;
+  m.time   = document.getElementById('m-time').value;
+  m.venue  = document.getElementById('m-venue').value;
+  m.status = document.getElementById('m-status').value;
+  if(m.score1!==null && m.score2!==null && m.status==='scheduled') m.status='completed';
+  save();
+  closeModal();
+  renderAll();
+}
+
+function clearResult() {
+  if(!editId) return;
+  const m = matches[editId];
+  m.score1=m.score2=m.pen1=m.pen2=null;
+  m.status='scheduled';
+  save();
+  closeModal();
+  renderAll();
+}
+
+function resetAll() {
+  if(!confirm('Reset ALL match data? This cannot be undone.')) return;
+  matches = buildDefaultMatches();
+  save();
+  renderAll();
+}
+
+document.getElementById('overlay').addEventListener('click', e => { if(e.target.id==='overlay') closeModal(); });
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape') closeModal();
+  if(e.key==='Enter' && editId && document.activeElement.tagName!=='BUTTON') saveResult();
+});
+
+load();
 renderAll();
 </script>
 </body>
