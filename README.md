@@ -8,6 +8,11 @@
 [![Runs Locally](https://img.shields.io/badge/Runs%20Locally-No%20Server%20Needed-006847?style=flat-square)](worldcup2026.html)
 
 ---
+## 🖥️ use it directly on your browser 
+You can use it directly on your browser without downloading:
+https://kuarahy.github.io/World-Cup-Table-2026/
+
+On a refresh, the memory is kept locally, no need for any accounts.
 
 ## 📥 How to Download
 
